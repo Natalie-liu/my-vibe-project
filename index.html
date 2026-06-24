@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAT Vocab SRS - Master Your Vocabulary</title>
+  <meta name="description" content="A vintage academic-style SAT vocabulary builder featuring spaced repetition scheduling (SRS), daily learning limits, and interactive quizzes to help you score high.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="light-theme">
+  <!-- Layout Wrapper -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="logo-icon"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        </div>
+        <span class="brand-name">SAT<span>Library</span></span>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="#dashboard" class="menu-item active" id="nav-dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#learn" class="menu-item" id="nav-learn">
+          <i data-lucide="bookmark"></i>
+          <span>Daily 50 Learn</span>
+          <span class="badge" id="badge-learn-count">0</span>
+        </a>
+        <a href="#flashcards" class="menu-item" id="nav-flashcards">
+          <i data-lucide="book-open"></i>
+          <span>Flashcard Deck</span>
+        </a>
+        <a href="#quiz" class="menu-item" id="nav-quiz">
+          <i data-lucide="help-circle"></i>
+          <span>Casual Quiz</span>
+          <span class="badge danger" id="badge-review-count">0</span>
+        </a>
+        <a href="#test" class="menu-item" id="nav-test">
+          <i data-lucide="clock"></i>
+          <span>Timed Test</span>
+        </a>
+        <a href="#library" class="menu-item" id="nav-library">
+          <i data-lucide="library"></i>
+          <span>Word Library</span>
+        </a>
+        <a href="#import" class="menu-item" id="nav-import">
+          <i data-lucide="upload-cloud"></i>
+          <span>Import / AI</span>
+        </a>
+        <a href="#settings" class="menu-item" id="nav-settings">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="streak-widget">
+          <div class="streak-icon-container">
+            <i data-lucide="flame" class="streak-flame"></i>
+          </div>
+          <div class="streak-details">
+            <span class="streak-count" id="sidebar-streak-value">0</span>
+            <span class="streak-label">Day Streak</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main Content Area -->
+    <main class="app-main-content">
+      
+      <!-- Top Action Bar -->
+      <header class="top-bar">
+        <h1 class="page-title" id="page-title-text">Dashboard</h1>
+        
+        <div class="top-bar-actions">
+          <!-- Quick Status Indicator -->
+          <div class="quick-status">
+            <span class="status-dot green"></span>
+            <span class="status-text">Library Sync Active</span>
+          </div>
+          
+          <!-- Theme Toggle -->
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Theme">
+            <i data-lucide="sun" class="sun-icon"></i>
+            <i data-lucide="moon" class="moon-icon"></i>
+          </button>
+        </div>
+      </header>
+      
+      <!-- Views Container -->
+      <div class="view-viewport">
+        
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="dashboard-view" class="app-view active">
+          <!-- Hero Section -->
+          <div class="dashboard-hero">
+            <div class="hero-left">
+              <h2>Your Vintage SAT Study Archive</h2>
+              <p>Your SAT exam is scheduled for November. Daily consistent spaced repetition is the most effective scientific method to lock vocabulary terms into long-term memory.</p>
+              <div class="hero-actions">
+                <button class="btn btn-primary btn-lg" id="dash-start-learn">
+                  <i data-lucide="bookmark"></i> Learn Today's Cards
+                </button>
+                <button class="btn btn-secondary btn-lg" id="dash-start-review">
+                  <i data-lucide="help-circle"></i> Review Queue (<span id="dash-review-count">0</span>)
+                </button>
+              </div>
+            </div>
+            
+            <!-- Progress Ring -->
+            <div class="hero-right">
+              <div class="progress-ring-container">
+                <svg class="progress-ring" width="160" height="160">
+                  <circle class="progress-ring__circle-bg" stroke="var(--border-subtle)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
+                  <circle class="progress-ring__circle" id="dash-progress-circle" stroke="var(--primary)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
+                </svg>
+                <div class="progress-ring-text">
+                  <span class="percent-val" id="dash-progress-percent">0%</span>
+                  <span class="percent-label">Daily Goal</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card glass-panel">
+              <div class="stat-icon brown"><i data-lucide="bookmark"></i></div>
+              <div class="stat-info">
+                <h3>Studied Today</h3>
+                <p class="stat-value"><span id="stat-words-today">0</span> <span class="max-val">/ 50</span></p>
+              </div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-icon green"><i data-lucide="award"></i></div>
+              <div class="stat-info">
+                <h3>Total Mastered</h3>
+                <p class="stat-value" id="stat-total-mastered">0</p>
+              </div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-icon blue"><i data-lucide="calendar"></i></div>
+              <div class="stat-info">
+                <h3>Next Review Due</h3>
+                <p class="stat-value" id="stat-next-review-date">None</p>
+              </div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-icon orange"><i data-lucide="star"></i></div>
+              <div class="stat-info">
+                <h3>Starred Words</h3>
+                <p class="stat-value" id="stat-starred-count">0</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Row: Calendar & Breakdown -->
+          <div class="dashboard-row">
+            <!-- SRS Status Distribution -->
+            <div class="dashboard-col col-5 glass-panel">
+              <h3>Library Distribution</h3>
+              <div class="distribution-chart">
+                <div class="dist-bar-wrapper">
+                  <span class="dist-label">New</span>
+                  <div class="dist-bar-track">
+                    <div class="dist-bar-fill new-fill" id="chart-new-width"></div>
+                  </div>
+                  <span class="dist-count" id="chart-new-count">0</span>
+                </div>
+                <div class="dist-bar-wrapper">
+                  <span class="dist-label">Learning</span>
+                  <div class="dist-bar-track">
+                    <div class="dist-bar-fill learning-fill" id="chart-learning-width"></div>
+                  </div>
+                  <span class="dist-count" id="chart-learning-count">0</span>
+                </div>
+                <div class="dist-bar-wrapper">
+                  <span class="dist-label">Familiar</span>
+                  <div class="dist-bar-track">
+                    <div class="dist-bar-fill familiar-fill" id="chart-familiar-width"></div>
+                  </div>
+                  <span class="dist-count" id="chart-familiar-count">0</span>
+                </div>
+                <div class="dist-bar-wrapper">
+                  <span class="dist-label">Mastered</span>
+                  <div class="dist-bar-track">
+                    <div class="dist-bar-fill mastered-fill" id="chart-mastered-width"></div>
+                  </div>
+                  <span class="dist-count" id="chart-mastered-count">0</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Calendar Timeline -->
+            <div class="dashboard-col col-7 glass-panel">
+              <h3>Upcoming Review Calendar</h3>
+              <p class="section-desc">Estimate of due spaced-repetition reviews scheduled over the next 5 days.</p>
+              <div class="timeline-forecast" id="review-forecast-container">
+                <!-- Dynamically generated timeline columns -->
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- 2. LEARN VIEW -->
+        <section id="learn-view" class="app-view">
+          <div class="session-header-container">
+            <div class="session-progress-bar">
+              <div class="session-progress-fill" id="learn-session-progress"></div>
+            </div>
+            <div class="session-progress-stats">
+              <span>Card <span id="learn-current-index">0</span> of <span id="learn-total-cards">0</span></span>
+              <button class="btn btn-text-danger" id="quit-learn-session"><i data-lucide="x"></i> End Session</button>
+            </div>
+          </div>
+          
+          <div class="study-card-outer">
+            <!-- Double Sided Flashcard -->
+            <div class="study-card glass-panel" id="flashcard">
+              <!-- FRONT -->
+              <div class="card-side card-front">
+                <button class="card-star-btn" id="card-star" aria-label="Star word">
+                  <i data-lucide="star"></i>
+                </button>
+                <div class="card-word-meta">
+                  <span class="pos-tag" id="card-pos">noun</span>
+                </div>
+                <h3 class="card-word" id="card-word-text">abate</h3>
+                <p class="click-prompt">Click Card to Flip</p>
+                
+                <div class="card-audio-container">
+                  <button class="audio-btn" id="card-speak-btn" title="Speak Word">
+                    <i data-lucide="volume-2"></i> Listen Pronunciation
+                  </button>
+                </div>
+              </div>
+              
+              <!-- BACK -->
+              <div class="card-side card-back">
+                <button class="card-star-btn" id="card-star-back" aria-label="Star word">
+                  <i data-lucide="star"></i>
+                </button>
+                <div class="card-word-meta-back">
+                  <span class="word-back-title" id="card-word-text-back">abate</span>
+                  <span class="pos-tag" id="card-pos-back">noun</span>
+                </div>
+                
+                <div class="card-content-block">
+                  <h4 class="block-label">English Definition</h4>
+                  <p class="definition-text" id="card-definition">To become less active, less intense, or less in amount.</p>
+                </div>
+                
+                <div class="card-content-block">
+                  <h4 class="block-label">Chinese Translation / 中文翻译</h4>
+                  <div class="translation-reveal-container">
+                    <p class="translation-text blurred" id="card-chinese">减少，减轻，缓和</p>
+                    <button class="btn btn-sm btn-secondary" id="btn-reveal-translation">Reveal Translation / 显示</button>
+                  </div>
+                </div>
+                
+                <div class="card-content-block" id="card-synonyms-container">
+                  <h4 class="block-label">Synonyms</h4>
+                  <div class="synonym-tags" id="card-synonyms">
+                    <!-- Synonyms tags -->
+                  </div>
+                </div>
+                
+                <div class="card-content-block">
+                  <h4 class="block-label">Example Sentence</h4>
+                  <p class="example-text" id="card-example">"As the hurricane moved inland, the rain and wind began to abate."</p>
+                </div>
+                
+                <p class="click-prompt-back">Click Card to Flip Back</p>
+              </div>
+            </div>
+            
+            <!-- Controls displayed under card (only when flipped back) -->
+            <div class="rating-controls-container" id="rating-controls">
+              <p class="controls-label">How familiar are you with this word?</p>
+              <div class="rating-buttons">
+                <button class="rating-btn not-familiar" data-rating="not-familiar">
+                  <span class="emoji">😴</span>
+                  <div class="btn-labels">
+                    <span class="title">Forgot / New</span>
+                    <span class="sub">Review today</span>
+                  </div>
+                </button>
+                <button class="rating-btn somewhat" data-rating="somewhat">
+                  <span class="emoji">🤔</span>
+                  <div class="btn-labels">
+                    <span class="title">Hard / So-so</span>
+                    <span class="sub">Review in 2 days</span>
+                  </div>
+                </button>
+                <button class="rating-btn mastered" data-rating="mastered">
+                  <span class="emoji">🧠</span>
+                  <div class="btn-labels">
+                    <span class="title">Know / Mastered</span>
+                    <span class="sub">Review in 4+ days</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. FLASHCARDS DECK VIEW -->
+        <section id="flashcards-view" class="app-view">
+          <div class="setup-container glass-panel">
+            <h2>Select Flashcard Deck</h2>
+            <p>Pick a subcategory from your vocabulary collection to study at your own pace without multiple-choice questions.</p>
+            
+            <div class="mode-grid">
+              <button class="mode-card" id="deck-btn-due">
+                <div class="mode-icon"><i data-lucide="repeat"></i></div>
+                <h3>Due Words Only</h3>
+                <p>Focus on words scheduled for review today by your spaced spacing interval.</p>
+                <span class="mode-count-badge" id="deck-due-count">0</span>
+              </button>
+              <button class="mode-card" id="deck-btn-starred">
+                <div class="mode-icon"><i data-lucide="star" style="color:var(--warning); fill:var(--warning);"></i></div>
+                <h3>Starred Words</h3>
+                <p>Study terms you have bookmarked for extra focus and retention.</p>
+                <span class="mode-count-badge" id="deck-starred-count">0</span>
+              </button>
+              <button class="mode-card" id="deck-btn-all">
+                <div class="mode-icon"><i data-lucide="library"></i></div>
+                <h3>Entire Library</h3>
+                <p>Browse through your complete set of SAT vocab words alphabetically.</p>
+                <span class="mode-count-badge" id="deck-all-count">0</span>
+              </button>
+            </div>
+          </div>
+        </section>
+        
+        <!-- 4. CASUAL QUIZ SETUP & RUNNER VIEW -->
+        <section id="quiz-view" class="app-view">
+          <!-- Quiz Setup Panel -->
+          <div class="setup-container glass-panel" id="quiz-setup-panel">
+            <h2>Casual Quiz Sandbox</h2>
+            <p>Practice vocabulary terms with immediate grading, explanations, and voice read-alouds. This mode will update review intervals.</p>
+            
+            <div class="setup-form-grid">
+              <div class="form-group">
+                <label for="quiz-setup-deck">Choose Deck Pool</label>
+                <select id="quiz-setup-deck" class="select-dropdown">
+                  <option value="due">Due Review Words</option>
+                  <option value="starred">Starred Words</option>
+                  <option value="all">All Library Words</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="quiz-setup-types">Question Formats</label>
+                <div class="checkbox-options-grid">
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="quiz-opt-def-eng" checked>
+                    <span>English Definition matching</span>
+                  </label>
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="quiz-opt-def-chi" checked>
+                    <span>Chinese Translation matching</span>
+                  </label>
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="quiz-opt-sentence" checked>
+                    <span>SAT Sentence completion</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="quiz-setup-size">Question Limit</label>
+                <select id="quiz-setup-size" class="select-dropdown">
+                  <option value="10">10 Questions</option>
+                  <option value="20">20 Questions</option>
+                  <option value="30">30 Questions</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="quiz-start-session-btn" style="margin-top: 24px; width:100%;">
+              <i data-lucide="play-circle"></i> Start Casual Practice Quiz
+            </button>
+          </div>
+
+          <!-- Active Quiz Block -->
+          <div class="quiz-container glass-panel hidden" id="quiz-runner-box">
+            <div class="quiz-header">
+              <div class="quiz-progress">Question <span id="quiz-q-index">1</span>/<span id="quiz-q-total">10</span></div>
+              <div class="quiz-score">Score: <span id="quiz-score-val">0</span></div>
+            </div>
+            
+            <div class="quiz-question-box">
+              <div class="question-type-tag" id="quiz-type-tag">Word to Definition</div>
+              <h3 class="question-text" id="quiz-question-text">What is the definition of "abate"?</h3>
+            </div>
+            
+            <div class="quiz-options-list" id="quiz-options">
+              <!-- Dynamically populated MCQ buttons -->
+            </div>
+            
+            <!-- Explanation Card (visible after selection) -->
+            <div class="quiz-explanation-card hidden" id="quiz-explanation">
+              <div class="explanation-heading">
+                <span class="exp-status-icon success" id="exp-status-icon"><i data-lucide="check-circle-2"></i></span>
+                <span class="exp-status-text" id="exp-status-text">Correct!</span>
+              </div>
+              <p class="exp-word-detail">
+                <strong id="exp-word">abate</strong> (<span id="exp-pos">verb</span>) 
+                <span style="display:block; font-size:13px; color:var(--primary); margin-top:2px;" id="exp-chinese">中文: 减少，减轻</span>
+              </p>
+              <p class="exp-definition-box"><strong style="font-size:11px; text-transform:uppercase; color:var(--text-muted);">Definition:</strong> <span id="exp-definition">definition text</span></p>
+              <p class="exp-sentence" id="exp-example">"Example sentence goes here"</p>
+              
+              <div class="explanation-footer">
+                <button class="btn btn-primary" id="quiz-next-btn">Next Question <i data-lucide="arrow-right"></i></button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Quiz Scoreboard (visible at the end) -->
+          <div class="quiz-results-panel glass-panel hidden" id="quiz-results">
+            <div class="results-trophy"><i data-lucide="trophy" class="trophy-icon"></i></div>
+            <h2>Practice Completed!</h2>
+            <p class="score-summary">You scored <strong id="results-score">8/10</strong> (<span id="results-percent">80%</span>)</p>
+            <p id="results-feedback">Excellent job! Spaced repetition intervals have been updated automatically.</p>
+            
+            <div class="wrong-words-review hidden" id="wrong-words-container">
+              <h3>Words to Focus On:</h3>
+              <ul class="wrong-words-list" id="wrong-words-list">
+                <!-- List of wrong words -->
+              </ul>
+            </div>
+            
+            <div class="results-actions">
+              <button class="btn btn-primary" id="results-finish-btn">Return to Dashboard</button>
+              <button class="btn btn-secondary" id="results-retry-btn">Try Another Practice</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. TIMED TEST VIEW (NO IMMEDIATE FEEDBACK, SPELLING INCLUDED) -->
+        <section id="test-view" class="app-view">
+          <!-- Setup Panel -->
+          <div class="setup-container glass-panel" id="test-setup-panel">
+            <h2>Timed Exam Tester</h2>
+            <p>Simulate official exam conditions. Answers are submitted silently, and results with scores and corrections are calculated only at the end. Includes spelling typing tests.</p>
+            
+            <div class="setup-form-grid">
+              <div class="form-group">
+                <label for="test-setup-deck">Choose Deck Pool</label>
+                <select id="test-setup-deck" class="select-dropdown">
+                  <option value="all">All Library Words</option>
+                  <option value="due">Due Review Words Only</option>
+                  <option value="starred">Starred Words Only</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="test-setup-formats">Include Formats</label>
+                <div class="checkbox-options-grid">
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="test-opt-mcq" checked>
+                    <span>Multiple Choice Questions (SAT Context & Translations)</span>
+                  </label>
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="test-opt-spelling" checked>
+                    <span>Spelling / Typing Checks (Type words from definitions)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="test-setup-size">Exam Size</label>
+                <select id="test-setup-size" class="select-dropdown">
+                  <option value="10">10 Questions</option>
+                  <option value="25">25 Questions</option>
+                  <option value="50">50 Questions</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="test-start-btn" style="margin-top: 24px; width:100%;">
+              <i data-lucide="check-square"></i> Begin Exam Session
+            </button>
+          </div>
+
+          <!-- Active Exam Block -->
+          <div class="quiz-container glass-panel hidden" id="test-runner-box">
+            <div class="quiz-header">
+              <div class="quiz-progress">Question <span id="test-q-index">1</span>/<span id="test-q-total">10</span></div>
+              <div class="exam-timer-box">
+                <i data-lucide="clock" class="timer-icon"></i>
+                <span id="test-timer-val">00:00</span>
+              </div>
+            </div>
+            
+            <div class="quiz-question-box">
+              <div class="question-type-tag" id="test-type-tag">SAT Style Completion</div>
+              <h3 class="question-text" id="test-question-text">Question loading...</h3>
+            </div>
+            
+            <!-- MCQ Options Container -->
+            <div class="quiz-options-list" id="test-options">
+              <!-- Dynamically populated options -->
+            </div>
+
+            <!-- Spelling Input Container (for spelling type questions) -->
+            <div class="spelling-input-container hidden" id="test-spelling-box">
+              <input type="text" id="test-spelling-input" placeholder="Type the correct spelling of the vocabulary word..." autocomplete="off">
+              <p class="spelling-hint">Press Enter or click Next to save answer.</p>
+            </div>
+
+            <div class="explanation-footer" style="margin-top: 20px;">
+              <button class="btn btn-primary" id="test-next-btn">Next Question <i data-lucide="arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- Exam Results Summary -->
+          <div class="quiz-results-panel glass-panel hidden" id="test-results">
+            <div class="results-trophy"><i data-lucide="award" class="trophy-icon" style="color:var(--secondary);"></i></div>
+            <h2>Exam Completed!</h2>
+            
+            <div class="score-summary-grid">
+              <div class="score-summary-card">
+                <span class="label">Score</span>
+                <span class="val" id="test-score-val">0 / 10</span>
+              </div>
+              <div class="score-summary-card">
+                <span class="label">Accuracy</span>
+                <span class="val" id="test-accuracy-val">0%</span>
+              </div>
+              <div class="score-summary-card">
+                <span class="label">Time Elapsed</span>
+                <span class="val" id="test-time-val">00:00</span>
+              </div>
+            </div>
+
+            <div class="test-review-panel">
+              <h3>Detailed Scorecard</h3>
+              <div class="table-scroll-wrapper">
+                <table class="results-table">
+                  <thead>
+                    <tr>
+                      <th>Word</th>
+                      <th>Chinese Translation</th>
+                      <th>Your Answer</th>
+                      <th>Correct Answer</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="test-results-table-body">
+                    <!-- Dynamic scorecard rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="results-actions" style="margin-top: 28px;">
+              <button class="btn btn-primary" id="test-finish-btn">Return to Dashboard</button>
+              <button class="btn btn-secondary" id="test-retry-btn">Try Another Exam</button>
+            </div>
+          </div>
+        </section>
+        
+        <!-- 6. WORD LIBRARY VIEW -->
+        <section id="library-view" class="app-view">
+          <div class="library-toolbar">
+            <!-- Search & Filters -->
+            <div class="search-box-container">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="lib-search" placeholder="Search vocabulary word, definition, or tag...">
+            </div>
+            
+            <div class="filter-controls">
+              <select id="lib-filter-status" class="select-dropdown">
+                <option value="all">All Words</option>
+                <option value="starred">Starred Only</option>
+                <option value="new">New Words</option>
+                <option value="learning">Learning Status</option>
+                <option value="familiar">Familiar Status</option>
+                <option value="mastered">Mastered Status</option>
+                <option value="due">Due Review</option>
+              </select>
+              
+              <button class="btn btn-primary" id="lib-add-word-btn">
+                <i data-lucide="plus"></i> Add Word
+              </button>
+            </div>
+          </div>
+          
+          <!-- Word Cards Container -->
+          <div class="library-grid" id="library-grid-container">
+            <!-- Dynamically populated cards -->
+          </div>
+          
+          <!-- Pagination -->
+          <div class="library-pagination" id="lib-pagination">
+            <button class="btn btn-secondary btn-sm" id="pagination-prev"><i data-lucide="chevron-left"></i> Previous</button>
+            <span class="pagination-info" id="pagination-info-text">Page 1 of 5</span>
+            <button class="btn btn-secondary btn-sm" id="pagination-next">Next <i data-lucide="chevron-right"></i></button>
+          </div>
+        </section>
+        
+        <!-- 7. IMPORT / AI VIEW -->
+        <section id="import-view" class="app-view">
+          <!-- Tab Headers -->
+          <div class="import-tabs">
+            <button class="import-tab-btn active" id="tab-btn-standard">Standard Text / CSV Importer</button>
+            <button class="import-tab-btn" id="tab-btn-ai">Gemini AI Smart Importer</button>
+          </div>
+
+          <!-- TAB 1: STANDARD IMPORTER -->
+          <div class="import-layout glass-panel" id="import-tab-standard">
+            <div class="import-instructions">
+              <h2>Bulk Import Vocabulary</h2>
+              <p>Add your own custom vocabulary lists directly. Copy and paste columns from Excel/Google Sheets, or write line records.</p>
+              
+              <div class="format-sample">
+                <h3>Format 1: Excel / Tab Separated (Pasted directly from sheets)</h3>
+                <p class="format-legend">Format: <code>Word [TAB] POS [TAB] English Def [TAB] Chinese [TAB] Sentence</code></p>
+                <pre>gregarious	adjective	fond of company	社交的，群居的	"He was a gregarious host."</pre>
+              </div>
+
+              <div class="format-sample">
+                <h3>Format 2: Colon-Pipe Format (word: definition | Chinese | sentence)</h3>
+                <pre>gregarious: fond of company | 社交的，群居的 | "He was gregarious."</pre>
+              </div>
+              
+              <div class="format-sample">
+                <h3>Format 3: Line Format with brackets</h3>
+                <pre>gregarious: fond of company; sociable [社交的，群居的]</pre>
+              </div>
+            </div>
+            
+            <div class="import-input-panel">
+              <div class="file-upload-zone" id="standard-upload-zone">
+                <i data-lucide="file-text" class="upload-zone-icon"></i>
+                <p>Drag & drop a text file (.txt, .csv, .tsv) or <span>click to upload</span></p>
+                <input type="file" id="standard-file-input" accept=".txt,.csv,.tsv" class="hidden-file-input">
+              </div>
+              <div id="standard-file-status" class="file-status-text hidden">Loaded file: <span id="standard-file-name"></span></div>
+              <textarea id="import-text" placeholder="Or paste your vocabulary list here... one word record per line."></textarea>
+              
+              <div class="import-actions">
+                <button class="btn btn-secondary" id="import-clear">Clear Input</button>
+                <button class="btn btn-primary" id="import-submit">
+                  <i data-lucide="check"></i> Parse and Import List
+                </button>
+              </div>
+              
+              <!-- Import Results Log -->
+              <div class="import-results-box hidden" id="import-results-panel">
+                <h3>Import Results</h3>
+                <p>Imported: <strong id="import-success-count" class="text-green">0</strong> words.</p>
+                <p>Skipped/Failed: <strong id="import-fail-count" class="text-danger">0</strong> words.</p>
+                
+                <div class="import-errors-log hidden" id="import-errors-log">
+                  <h4>Error Log:</h4>
+                  <ul id="import-errors-list"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: GEMINI AI SMART IMPORTER -->
+          <div class="import-layout glass-panel hidden" id="import-tab-ai">
+            <div class="import-instructions">
+              <h2>Gemini AI Document Analyzer</h2>
+              <p>Paste raw text, chaotic reading notes, or document exports. The AI will analyze the text, extract vocabulary words, determine their POS, write concise English definitions, add Chinese translations, and compose clear SAT context sentences.</p>
+              
+              <div class="ai-key-widget">
+                <label for="ai-api-key">Gemini API Key *</label>
+                <div class="api-key-input-container">
+                  <input type="password" id="ai-api-key" placeholder="Enter your Gemini API Key..." class="api-key-input">
+                  <button class="btn btn-secondary btn-sm" id="save-api-key-btn">Save Key</button>
+                </div>
+                <p class="key-hint">Your API key is saved securely inside your browser's local storage and is never uploaded anywhere.</p>
+              </div>
+              
+              <div class="ai-prompt-guidelines">
+                <h3>How to use:</h3>
+                <ol>
+                  <li>Create a free Gemini API Key on Google AI Studio.</li>
+                  <li>Paste the key above and save it.</li>
+                  <li>Paste your unstructured notes in the text box.</li>
+                  <li>Click <strong>Analyze & Import</strong> to let the AI process it.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="import-input-panel">
+              <div class="file-upload-zone" id="ai-upload-zone">
+                <i data-lucide="file-up" class="upload-zone-icon"></i>
+                <p>Drag & drop any text notes document (.txt) or <span>click to upload</span></p>
+                <input type="file" id="ai-file-input" accept=".txt" class="hidden-file-input">
+              </div>
+              <div id="ai-file-status" class="file-status-text hidden">Loaded file: <span id="ai-file-name"></span></div>
+              <textarea id="import-ai-text" placeholder="Or paste your raw study documents, books excerpt, or messy vocabulary notes here..."></textarea>
+              
+              <div class="import-actions">
+                <button class="btn btn-secondary" id="import-ai-clear">Clear</button>
+                <button class="btn btn-primary" id="import-ai-submit">
+                  <i data-lucide="cpu"></i> Analyze & Import with AI
+                </button>
+              </div>
+
+              <!-- Shimmering Loading State -->
+              <div class="ai-loader-box hidden" id="ai-loading-indicator">
+                <div class="shimmer-line"></div>
+                <div class="shimmer-line"></div>
+                <p class="loader-text">Gemini AI is analyzing your document. Extracting terms, POS, English definitions, Chinese translations, and sentences...</p>
+              </div>
+
+              <!-- AI Results -->
+              <div class="import-results-box hidden" id="import-ai-results-panel">
+                <h3>AI Extraction Completed</h3>
+                <p>Extracted and Added: <strong id="import-ai-success-count" class="text-green">0</strong> structured cards.</p>
+                <p>Skipped (Duplicates): <strong id="import-ai-fail-count" class="text-danger">0</strong> words.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- 8. SETTINGS VIEW -->
+        <section id="settings-view" class="app-view">
+          <div class="settings-grid">
+            <!-- Audio Settings -->
+            <div class="settings-card glass-panel">
+              <h3><i data-lucide="volume-2"></i> Voice / Pronunciation</h3>
+              <p class="section-desc">Adjust the Text-to-Speech playback engine settings.</p>
+              
+              <div class="setting-item">
+                <label for="settings-voice">Voice Select</label>
+                <select id="settings-voice" class="select-dropdown">
+                  <!-- Voice options populated by JS -->
+                </select>
+              </div>
+              
+              <div class="setting-item">
+                <label for="settings-speed">Speed Rate (<span id="settings-speed-val">1.0</span>x)</label>
+                <input type="range" id="settings-speed" min="0.5" max="1.5" step="0.1" value="1.0">
+              </div>
+            </div>
+            
+            <!-- Data Backup -->
+            <div class="settings-card glass-panel">
+              <h3><i data-lucide="database"></i> Data Backup & Sync</h3>
+              <p class="section-desc">Keep your progress safe. Export your database file to your computer or restore from a backup.</p>
+              
+              <div class="settings-actions-stacked">
+                <button class="btn btn-secondary" id="settings-export-btn">
+                  <i data-lucide="download"></i> Export Progress Backup (JSON)
+                </button>
+                
+                <div class="file-upload-wrapper">
+                  <button class="btn btn-secondary" id="settings-import-trigger">
+                    <i data-lucide="upload"></i> Restore from Backup (JSON)
+                  </button>
+                  <input type="file" id="settings-import-file" accept=".json" class="hidden-file-input">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Reset App -->
+            <div class="settings-card glass-panel danger-card">
+              <h3><i data-lucide="alert-triangle"></i> Factory Reset</h3>
+              <p class="section-desc">This action will erase all vocabulary modifications, study logs, streaks, and local data, resetting back to default.</p>
+              <button class="btn btn-danger" id="settings-reset-btn">Reset Database & Progress</button>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+    </main>
+    
+  </div>
+  
+  <!-- MODAL: ADD / EDIT WORD -->
+  <div class="modal-overlay" id="word-modal">
+    <div class="modal-container glass-panel">
+      <div class="modal-header">
+        <h3 id="modal-title">Add New Word</h3>
+        <button class="modal-close-btn" id="word-modal-close"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form class="modal-form" id="word-form">
+        <input type="hidden" id="edit-original-word">
+        
+        <div class="form-group">
+          <label for="form-word">Word *</label>
+          <input type="text" id="form-word" required placeholder="e.g. gregarious">
+        </div>
+        
+        <div class="form-group">
+          <label for="form-pos">Part of Speech</label>
+          <select id="form-pos" class="select-dropdown">
+            <option value="adjective">Adjective</option>
+            <option value="noun">Noun</option>
+            <option value="verb">Verb</option>
+            <option value="adverb">Adverb</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="form-definition">English Definition *</label>
+          <textarea id="form-definition" required placeholder="e.g. fond of company; sociable"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="form-chinese">Chinese Translation / 中文翻译</label>
+          <input type="text" id="form-chinese" placeholder="e.g. 社交的，群居的">
+        </div>
+        
+        <div class="form-group">
+          <label for="form-synonyms">Synonyms (comma separated)</label>
+          <input type="text" id="form-synonyms" placeholder="e.g. social, outgoing, companionable">
+        </div>
+        
+        <div class="form-group">
+          <label for="form-example">Example Context Sentence</label>
+          <textarea id="form-example" placeholder='e.g. "He was a gregarious person who loved hosting dinner parties."'></textarea>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="word-form-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="word-form-submit">Save Word</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="words.js"></script>
+  <script src="srs.js"></script>
+  <script src="ui.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
