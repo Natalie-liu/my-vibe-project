@@ -791,15 +791,19 @@
               </div>
             </div>
             
-            <!-- Reset App -->
-            <!-- Daily Reset Card -->
-            <div class="settings-card glass-panel">
-              <h3><i data-lucide="refresh-cw"></i> Daily Session Reset</h3>
-              <p class="section-desc">"Unlearn" everything studied today. This returns today's words to 'New' and resets your progress ring to 0%.</p>
-              <button class="btn btn-secondary" id="settings-reset-today-btn" style="color: #e67e22; border-color: #e67e22;">
-                <i data-lucide="rotate-ccw"></i> Reset Today's Progress
-              </button>
-            </div>
+            <!-- Inside card-front -->
+<div class="typing-container" id="typing-area">
+  <p class="typing-hint">Type the word correctly to unlock:</p>
+  <input type="text" id="learn-typing-input" autocomplete="off">
+</div>
+
+<!-- Inside settings-view -->
+<div class="settings-card glass-panel">
+  <h3>Daily Session Reset</h3>
+  <button class="btn btn-secondary" id="settings-reset-today-btn">
+    Reset Today's Progress
+  </button>
+</div>
             <div class="settings-card glass-panel danger-card">
               <h3><i data-lucide="alert-triangle"></i> Factory Reset</h3>
               <p class="section-desc">This action will erase all vocabulary modifications, study logs, streaks, and local data, resetting back to default.</p>
