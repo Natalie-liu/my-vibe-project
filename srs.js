@@ -1,81 +1,52 @@
 /**
  * srs.js
- * Spaced Repetition System (SRS) engine using the SuperMemo-2 (SM-2) algorithm.
- * Manages database persistence in localStorage, schedules word reviews, and tracks daily progress.
+ * Handles the Spaced Repetition System logic and Database interactions.
  */
 
-const STORAGE_KEYS = {
-  WORDS: 'sat_vocab_words',
-  PROGRESS: 'sat_vocab_progress',
-  STREAK: 'sat_vocab_streak',
-  SETTINGS: 'sat_vocab_settings'
-};
-
 const SRS = {
-  // Initialize the database with merged data (default words + user edits)
-  initDatabase(defaultWords) {
-    let stored = localStorage.getItem(STORAGE_KEYS.WORDS);
-    let words = [];
+  // Get all words from local storage
+  getWords: function() {
+    const data = localStorage.getItem('sat_vocab_words');
+    return data ? JSON.parse(data) : [];
+  },
 
-    if (stored) {
-      try {
-        words = JSON.parse(stored);
-        
-        // Merge missing default words if any
-        defaultWords.forEach(defWord => {
-          if (!words.some(w => w.word.toLowerCase() === defWord.word.toLowerCase())) {
-            words.push(this.initializeWordState(defWord));
-          }
-        });
-      } catch (e) {
-        console.error("Error parsing stored vocab database, resetting to default.", e);
-        words = defaultWords.map(w => this.initializeWordState(w));
-      }
-    } else {
-      words = defaultWords.map(w => this.initializeWordState(w));
-      // Resets all words studied on the current date
+  // Save words to local storage
+  saveWords: function(words) {
+    localStorage.setItem('sat_vocab_words', JSON.stringify(words));
+  },
+
+  // Initial database setup
+  initDatabase: function(defaultWords) {
+    if (!localStorage.getItem('sat_vocab_words')) {
+      this.saveWords(defaultWords);
+    }
+  },
+
+  // Logic to "Unlearn" everything studied today
   resetTodayProgress: function() {
     const words = this.getWords();
     const today = new Date().toISOString().split('T')[0];
     let count = 0;
 
-   // Inside SRS object in srs.js
-resetTodayProgress: function() {
-    const words = this.getWords();
-    const today = new Date().toISOString().split('T')[0];
-    let count = 0;
-
     const updatedWords = words.map(word => {
-        if (word.lastStudied === today) {
-            count++;
-            return {
-                ...word,
-                status: 'new',
-                interval: 0,
-                nextReview: Date.now(),
-                lastStudied: null,
-                timesReviewed: 0,
-                ease: 2.5
-            };
-        }
-        return word;
+      if (word.lastStudied === today) {
+        count++;
+        return {
+          ...word,
+          status: 'new',
+          interval: 0,
+          nextReview: Date.now(),
+          lastStudied: null,
+          timesReviewed: 0,
+          ease: 2.5
+        };
+      }
+      return word;
     });
 
-    localStorage.setItem('sat_vocab_words', JSON.stringify(updatedWords));
+    this.saveWords(updatedWords);
     
-    let progress = JSON.parse(localStorage.getItem('sat_vocab_progress') || '{}');
-    progress[today] = 0;
-    localStorage.setItem('sat_vocab_progress', JSON.stringify(progress));
-    
-    return count;
-},
-
-getTodayDateString: function() {
-    return new Date().toISOString().split('T')[0];
-}
-    localStorage.setItem('sat_vocab_words', JSON.stringify(updatedWords));
-    
-    // Also reset the daily count in progress
+    // Reset daily progress counter
     let progress = JSON.parse(localStorage.getItem('sat_vocab_progress') || '{}');
     progress[today] = 0;
     localStorage.setItem('sat_vocab_progress', JSON.stringify(progress));
@@ -83,6 +54,40 @@ getTodayDateString: function() {
     return count;
   },
 
+  // Update a word after a study session
+  updateWordProgress: function(wordText, rating) {
+    const words = this.getWords();
+    const today = new Date().toISOString().split('T')[0];
+    const idx = words.findIndex(w => w.word === wordText);
+
+    if (idx === -1) return;
+
+    let word = words[idx];
+    word.lastStudied = today;
+    word.timesReviewed = (word.timesReviewed || 0) + 1;
+
+    // Simple SRS Algorithm
+    if (rating === 'mastered') {
+      word.interval = word.interval === 0 ? 4 : word.interval * 2;
+      word.status = 'mastered';
+    } else if (rating === 'somewhat') {
+      word.interval = 2;
+      word.status = 'learning';
+    } else {
+      word.interval = 0;
+      word.status = 'new';
+    }
+
+    word.nextReview = Date.now() + (word.interval * 24 * 60 * 60 * 1000);
+    words[idx] = word;
+    this.saveWords(words);
+
+    // Update Daily Counter
+    let progress = JSON.parse(localStorage.getItem('sat_vocab_progress') || '{}');
+    progress[today] = (progress[today] || 0) + 1;
+    localStorage.setItem('sat_vocab_progress', JSON.stringify(progress));
+  }
+};
   // Helper to get today's date string
   getTodayDateString: function() {
     return new Date().toISOString().split('T')[0];
