@@ -2300,3 +2300,24 @@ body.light-theme .sun-icon {
   display: block;
   pointer-events: auto;
 }
+/* Typing Logic & Animations */
+.typing-container { margin-top: 15px; }
+#learn-typing-input.correct-blink {
+  border-color: #27ae60 !important;
+  background-color: rgba(39, 174, 96, 0.1);
+  animation: blinker 0.6s linear;
+}
+
+@keyframes blinker {
+  50% { opacity: 0.5; }
+}
+
+/* Hide rating buttons until typed */
+#rating-controls {
+  display: none !important;
+}
+
+#rating-controls.visible {
+  display: flex !important;
+  margin-top: 20px;
+}
