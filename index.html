@@ -241,6 +241,20 @@
                   <span class="pos-tag" id="card-pos">noun</span>
                 </div>
                 <h3 class="card-word" id="card-word-text">abate</h3>
+                
+                <!-- NEW: Typing reinforcement area -->
+                <div class="typing-container" id="typing-area">
+                  <p class="typing-hint">Type the word to reveal definition:</p>
+                  <input type="text" id="learn-typing-input" autocomplete="off" placeholder="Type word here..." 
+                         style="width: 100%; padding: 10px; border: 2px solid var(--border-subtle); border-radius: 5px; text-align: center; font-size: 1.2rem; background: var(--bg-app); color: var(--text-main);">
+                  <div id="typing-feedback" style="height: 20px; color: var(--danger); font-size: 0.8rem; margin-top: 5px;"></div>
+                </div>
+
+                <div class="card-audio-container" style="margin-top: 15px;">
+                  <button class="audio-btn" id="card-speak-btn" title="Speak Word">
+                    <i data-lucide="volume-2"></i> Listen
+                  </button>
+                </div>
                 <p class="click-prompt">Click Card to Flip</p>
                 
                 <div class="card-audio-container">
@@ -778,6 +792,14 @@
             </div>
             
             <!-- Reset App -->
+            <!-- Daily Reset Card -->
+            <div class="settings-card glass-panel">
+              <h3><i data-lucide="refresh-cw"></i> Daily Session Reset</h3>
+              <p class="section-desc">"Unlearn" everything studied today. This returns today's words to 'New' and resets your progress ring to 0%.</p>
+              <button class="btn btn-secondary" id="settings-reset-today-btn" style="color: #e67e22; border-color: #e67e22;">
+                <i data-lucide="rotate-ccw"></i> Reset Today's Progress
+              </button>
+            </div>
             <div class="settings-card glass-panel danger-card">
               <h3><i data-lucide="alert-triangle"></i> Factory Reset</h3>
               <p class="section-desc">This action will erase all vocabulary modifications, study logs, streaks, and local data, resetting back to default.</p>
