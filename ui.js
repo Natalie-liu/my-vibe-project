@@ -1,111 +1,110 @@
 /**
  * ui.js
- * Handles all UI rendering, interactive state management, Text-to-Speech (TTS),
- * card flip animations, and the interactive SAT multiple-choice quiz and timed exam engines.
- * Also integrates the client-side Gemini AI parsing engine.
+ * Handles the visual transitions, Learn Sessions, and Quiz triggers.
  */
-learnSession: {
-    words: [],
-    currentIndex: 0,
-    batch: [], // For the 8-word quiz
-    sessionMasterList: [], // For the final 50-word quiz
-    isGeneralStudy: false
-  },
-const UI = {
-  // Speech Synthesis state
-  ttsVoice: null,
-  ttsRate: 1.0,
 
-  // Current session states
+const UI = {
   learnSession: {
     words: [],
     currentIndex: 0,
-    isGeneralStudy: false // Track if studying due/starred/all or daily 50
-  },
-  
-  quizSession: {
-    questions: [],
-    currentIndex: 0,
-    score: 0,
-    wrongAnswers: [],
-    sourceDeck: 'due'
+    batch: [],              // Tracks current 8 words for mini-quiz
+    sessionMaster: [],      // Tracks all 50 words
   },
 
-  examSession: {
-    questions: [],
-    currentIndex: 0,
-    answers: [], // Array of user answers (string for spelling, index for MCQs)
-    startTime: null,
-    timerInterval: null,
-    secondsElapsed: 0
+  init: function() {
+    // Initial UI setup (Icons, etc)
+    lucide.createIcons();
   },
 
-  // Library Pagination state
-  library: {
-    currentPage: 1,
-    pageSize: 9
-  },
-
-  init() {
-    this.initTTS();
-  },
-
-  /* ==========================================
-     TEXT-TO-SPEECH (TTS) SYSTEM
-     ========================================== */
-  initTTS() {
-    if ('speechSynthesis' in window) {
-      const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const voiceSelect = document.getElementById('settings-voice');
-        if (!voiceSelect) return;
-
-        voiceSelect.innerHTML = '';
-        const enVoices = voices.filter(v => v.lang.startsWith('en'));
-        const displayVoices = enVoices.length > 0 ? enVoices : voices;
-        
-        displayVoices.forEach(voice => {
-          const option = document.createElement('option');
-          option.value = voice.name;
-          option.textContent = `${voice.name} (${voice.lang})`;
-          if (voice.default || voice.name.includes('Google US English') || voice.name.includes('Natural')) {
-            option.selected = true;
-            this.ttsVoice = voice;
-          }
-          voiceSelect.appendChild(option);
-        });
-
-        if (!this.ttsVoice && displayVoices.length > 0) {
-          this.ttsVoice = displayVoices[0];
-        }
-      };
-
-      loadVoices();
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-      }
+  startLearnSession: function() {
+    const allWords = SRS.getWords();
+    // Filter for new or due words (limit 50)
+    this.learnSession.words = allWords.filter(w => w.status === 'new' || w.nextReview <= Date.now()).slice(0, 50);
+    this.learnSession.currentIndex = 0;
+    this.learnSession.batch = [];
+    this.learnSession.sessionMaster = [];
+    
+    if (this.learnSession.words.length === 0) {
+      alert("No words due for review! Add more or wait until tomorrow.");
+      window.location.hash = "#dashboard";
+      return;
     }
+    this.renderLearnCard();
   },
 
-  speak(text) {
-    if ('speechSynthesis' in window && text) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      const speedSlider = document.getElementById('settings-speed');
-      const voiceSelect = document.getElementById('settings-voice');
-      
-      if (speedSlider) this.ttsRate = parseFloat(speedSlider.value);
-      if (voiceSelect) {
-        const voices = window.speechSynthesis.getVoices();
-        const selectedVoice = voices.find(v => v.name === voiceSelect.value);
-        if (selectedVoice) this.ttsVoice = selectedVoice;
+  renderLearnCard: function() {
+    const wordObj = this.learnSession.words[this.currentIndex];
+    const input = document.getElementById('learn-typing-input');
+    const card = document.getElementById('flashcard');
+    const ratingControls = document.getElementById('rating-controls');
+
+    // Reset UI State
+    card.classList.remove('flipped');
+    ratingControls.classList.remove('visible');
+    input.value = "";
+    input.disabled = false;
+    input.classList.remove('correct-blink');
+
+    // Fill Content
+    document.getElementById('card-word-text').textContent = wordObj.word;
+    document.getElementById('card-definition').textContent = wordObj.definition;
+    document.getElementById('card-chinese').textContent = wordObj.chinese || "";
+    document.getElementById('card-chinese').classList.add('blurred');
+
+    // Typing Reinforcement Logic
+    input.oninput = (e) => {
+      if (e.target.value.toLowerCase().trim() === wordObj.word.toLowerCase().trim()) {
+        input.classList.add('correct-blink');
+        input.disabled = true;
+        card.classList.add('flipped');
+        ratingControls.classList.add('visible');
+        this.speak(wordObj.word);
       }
-
-      if (this.ttsVoice) utterance.voice = this.ttsVoice;
-      utterance.rate = this.ttsRate;
-      window.speechSynthesis.speak(utterance);
-    }
+    };
+    input.focus();
   },
+
+  handleFamiliarityClick: function(rating) {
+    const word = this.learnSession.words[this.currentIndex];
+    SRS.updateWordProgress(word.word, rating);
+
+    this.learnSession.batch.push(word);
+    this.learnSession.sessionMaster.push(word);
+    this.learnSession.currentIndex++;
+
+    // 1. Mini-Quiz every 8 words
+    if (this.learnSession.batch.length === 8) {
+      this.triggerInternalQuiz(this.learnSession.batch, "Mini-Quiz (Last 8 words)");
+      this.learnSession.batch = [];
+      return;
+    }
+
+    // 2. Final Quiz after 50 words
+    if (this.learnSession.currentIndex >= this.learnSession.words.length) {
+      this.triggerInternalQuiz(this.learnSession.sessionMaster, "Final Daily Mastery Quiz");
+      return;
+    }
+
+    this.renderLearnCard();
+  },
+
+  triggerInternalQuiz: function(list, title) {
+    alert(`🎯 ${title}! Let's check your memory.`);
+    // Logic to switch to Quiz view and load the list
+    // (Assuming your Quiz logic is ready to accept a custom word list)
+  },
+
+  speak: function(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'en-US';
+    window.speechSynthesis.speak(msg);
+  },
+
+  renderDashboard: function() {
+    // Logic for updating the Dashboard rings and stats
+    // (Existing dashboard code goes here)
+  }
+};
 
   /* ==========================================
      1. DASHBOARD RENDERER
