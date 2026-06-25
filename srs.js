@@ -33,6 +33,41 @@ const SRS = {
       }
     } else {
       words = defaultWords.map(w => this.initializeWordState(w));
+      // Resets all words studied on the current date
+  resetTodayProgress: function() {
+    const words = this.getWords();
+    const today = new Date().toISOString().split('T')[0];
+    let count = 0;
+
+    const updatedWords = words.map(word => {
+      if (word.lastStudied === today) {
+        count++;
+        return {
+          ...word,
+          status: 'new',
+          interval: 0,
+          nextReview: Date.now(),
+          lastStudied: null,
+          timesReviewed: 0,
+          ease: 2.5
+        };
+      }
+      return word;
+    });
+    localStorage.setItem('sat_vocab_words', JSON.stringify(updatedWords));
+    
+    // Also reset the daily count in progress
+    let progress = JSON.parse(localStorage.getItem('sat_vocab_progress') || '{}');
+    progress[today] = 0;
+    localStorage.setItem('sat_vocab_progress', JSON.stringify(progress));
+    
+    return count;
+  },
+
+  // Helper to get today's date string
+  getTodayDateString: function() {
+    return new Date().toISOString().split('T')[0];
+  }
     }
 
     this.saveWords(words);
