@@ -2284,3 +2284,19 @@ body.light-theme .sun-icon {
     grid-template-columns: 1fr;
   }
 }
+/* Typing logic states */
+#learn-typing-input.correct-blink {
+  border-color: #27ae60 !important;
+  background-color: rgba(39, 174, 96, 0.1) !important;
+}
+
+/* Initially hide controls until word is typed */
+#rating-controls {
+  display: none;
+  pointer-events: none;
+}
+
+#rating-controls.visible {
+  display: block;
+  pointer-events: auto;
+}
