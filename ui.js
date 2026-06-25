@@ -4,7 +4,13 @@
  * card flip animations, and the interactive SAT multiple-choice quiz and timed exam engines.
  * Also integrates the client-side Gemini AI parsing engine.
  */
-
+learnSession: {
+    words: [],
+    currentIndex: 0,
+    batch: [], // For the 8-word quiz
+    sessionMasterList: [], // For the final 50-word quiz
+    isGeneralStudy: false
+  },
 const UI = {
   // Speech Synthesis state
   ttsVoice: null,
