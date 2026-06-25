@@ -1,75 +1,36 @@
-/**
- * app.js
- * Main Coordinator & Controller.
- * Handles single-page routing, global event bindings, theme toggling,
- * modal popups, custom file imports, API key storage, and Gemini AI Smart Importer operations.
- */
-
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Initialize Database
-  if (typeof window.DEFAULT_WORDS !== 'undefined' && typeof window.SRS !== 'undefined') {
-    SRS.initDatabase(window.DEFAULT_WORDS);
-    SRS.checkStreakFreeze();
-  } else {
-    console.error("Critical error: words.js or srs.js failed to load.");
+  // Initialize Database
+  SRS.initDatabase(window.DEFAULT_WORDS || []);
+  UI.init();
+  UI.renderDashboard();
+
+  // Reset Today Button Event
+  const resetTodayBtn = document.getElementById('settings-reset-today-btn');
+  if (resetTodayBtn) {
+    resetTodayBtn.onclick = () => {
+      if (confirm("Reset today's progress? This will 'unlearn' everything you studied today.")) {
+        const count = SRS.resetTodayProgress();
+        alert(`Success! ${count} words were reset.`);
+        window.location.hash = "#dashboard";
+        window.location.reload();
+      }
+    };
   }
 
-  // Initialize UI State
-  if (typeof window.UI !== 'undefined') {
-    UI.init();
-    UI.renderDashboard();
-  }
-
-  // Pre-fill saved Gemini API Key if present
-  const savedApiKey = localStorage.getItem('sat_vocab_api_key');
-  const apiKeyInput = document.getElementById('ai-api-key');
-  if (savedApiKey && apiKeyInput) {
-    apiKeyInput.value = savedApiKey;
-  }
-
-  // Initialize Lucide Icons
-  lucide.createIcons();
-
-  // 2. Routing Controller (Single Page Hash Router)
-  const views = {
-    dashboard: { id: 'dashboard-view', title: 'Library Dashboard', navId: 'nav-dashboard' },
-    learn: { id: 'learn-view', title: 'Daily Learn Session', navId: 'nav-learn' },
-    flashcards: { id: 'flashcards-view', title: 'Flashcard Study Decks', navId: 'nav-flashcards' },
-    quiz: { id: 'quiz-view', title: 'Casual Practice Quiz', navId: 'nav-quiz' },
-    test: { id: 'test-view', title: 'Timed Exam Tester', navId: 'nav-test' },
-    library: { id: 'library-view', title: 'Vocabulary Library', navId: 'nav-library' },
-    import: { id: 'import-view', title: 'Import Vocabularies', navId: 'nav-import' },
-    settings: { id: 'settings-view', title: 'Application Settings', navId: 'nav-settings' }
-  };
-
+  // Routing Logic
   function router() {
     const hash = window.location.hash.substring(1) || 'dashboard';
-    const activeRoute = views[hash] || views.dashboard;
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+    const activeView = document.getElementById(`${hash}-view`);
+    if (activeView) activeView.classList.add('active');
 
-    // Show/Hide Views
-    Object.keys(views).forEach(key => {
-      const viewEl = document.getElementById(views[key].id);
-      if (viewEl) {
-        if (key === hash) {
-          viewEl.classList.add('active');
-        } else {
-          viewEl.classList.remove('active');
-        }
-      }
+    if (hash === 'learn') UI.startLearnSession();
+    if (hash === 'dashboard') UI.renderDashboard();
+  }
 
-      // Update Navigation styling
-      const navId = views[key].navId;
-      if (navId) {
-        const navEl = document.getElementById(navId);
-        if (navEl) {
-          if (key === hash) {
-            navEl.classList.add('active');
-          } else {
-            navEl.classList.remove('active');
-          }
-        }
-      }
-    });
+  window.addEventListener('hashchange', router);
+  router();
+});
 
     // Update Header Title Text
     document.getElementById('page-title-text').textContent = activeRoute.title;
